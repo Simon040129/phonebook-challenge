@@ -14,6 +14,8 @@
     --button-bg: #2b2b33;
     --button-fg: #f6f7ff;
     --accent: #7c8cff;
+    --masthead-fg: #f6f9ff;
+    --masthead-muted: rgba(208, 214, 255, 0.75);
 }
 
 @media (prefers-color-scheme: light) {
@@ -33,6 +35,8 @@
         --button-bg: #3c5cff;
         --button-fg: #ffffff;
         --accent: #2f4dd4;
+        --masthead-fg: #f4f6ff;
+        --masthead-muted: rgba(223, 227, 255, 0.78);
     }
 }
 
@@ -66,7 +70,10 @@ body {
         radial-gradient(1200px at 10% 10%, rgba(80, 102, 242, 0.14), transparent 60%),
         radial-gradient(900px at 80% 0%, rgba(120, 54, 199, 0.18), transparent 65%),
         radial-gradient(700px at 50% 100%, rgba(17, 178, 217, 0.18), transparent 60%);
-    min-height: 100%;
+    background-attachment: fixed, fixed, fixed;
+    background-repeat: no-repeat, no-repeat, no-repeat;
+    min-height: 100vh;
+    padding: 0 0 4rem;
 }
 
 a {

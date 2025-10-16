@@ -1,7 +1,7 @@
 .page {
     max-width: 1100px;
-    margin: 0 auto;
-    padding: 2rem 1rem 4rem;
+    margin: 3.5rem auto 5rem;
+    padding: 2.5rem 2.25rem 4rem;
     color: var(--fg);
     background: var(--panel);
     border: 1px solid var(--panel-border);
@@ -14,26 +14,48 @@
 
 .page__header {
     display: grid;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
     text-align: left;
     position: relative;
+    background: linear-gradient(
+        135deg,
+        rgba(92, 120, 255, 0.42),
+        rgba(30, 38, 112, 0.76) 52%,
+        rgba(14, 18, 56, 0.88) 100%
+    );
+    border-radius: 20px;
+    border: 1px solid rgba(90, 120, 255, 0.18);
+    padding: 1.75rem;
+    overflow: hidden;
+    color: var(--masthead-fg);
 }
 
-.page__header::after {
+.page__header::before {
     content: "";
     position: absolute;
-    inset: auto -40px -32px;
-    height: 120px;
-    background: linear-gradient(120deg, rgba(60, 92, 255, 0.18), transparent);
-    opacity: 0.6;
-    pointer-events: none;
+    inset: 0;
+    background: linear-gradient(
+        140deg,
+        rgba(10, 14, 36, 0.6) 0%,
+        rgba(16, 22, 54, 0.55) 48%,
+        rgba(42, 60, 128, 0.42) 100%
+    );
+    z-index: 0;
+}
+
+.page__header > * {
+    position: relative;
+    z-index: 1;
 }
 
 .page__title {
     margin: 0;
     font-size: 2rem;
-    color: var(--heading);
+    color: var(--masthead-fg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .page__eyebrow {
@@ -41,12 +63,12 @@
     text-transform: uppercase;
     font-size: 0.75rem;
     margin: 0 0 0.25rem;
-    color: var(--muted);
+    color: var(--masthead-muted);
 }
 
 .page__subtitle {
     margin: 0;
-    color: var(--muted);
+    color: var(--masthead-muted);
     max-width: 48ch;
 }
 
@@ -54,6 +76,7 @@
     display: flex;
     gap: 1.5rem;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .page__insignia {
@@ -66,13 +89,14 @@
 .page__titles {
     display: grid;
     gap: 0.35rem;
+    min-width: 0;
 }
 
 .page__meta {
-    margin: 1.25rem 0 0;
+    margin: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 1.5rem;
+    gap: 2rem;
     padding: 0;
 }
 
@@ -85,13 +109,13 @@
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: var(--muted);
+    color: var(--masthead-muted);
 }
 
 .page__meta-pair dd {
     margin: 0;
     font-weight: 600;
-    color: var(--heading);
+    color: var(--masthead-fg);
 }
 
 .toolbar {
@@ -186,26 +210,17 @@
 
 .contacts__item {
     position: relative;
-    padding-top: 1.25rem;
-}
-
-.contacts__item::before {
-    content: attr(data-index);
-    position: absolute;
-    top: 0;
-    left: 0.75rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    color: var(--muted);
 }
 
 .contact-card {
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 1rem;
+    padding: 1.5rem 1rem;
     background: var(--surface-alt);
     color: var(--fg);
     box-shadow: 0 12px 28px rgba(17, 17, 26, 0.08);
+    position: relative;
+    overflow: hidden;
 }
 
 .contact-card__photo {
@@ -316,11 +331,20 @@ select:focus-visible {
         grid-template-columns: 1fr 1fr;
     }
     .page {
-        padding: 1.5rem 1rem 3rem;
+        margin: 2rem 0.75rem 3.5rem;
+        padding: 1.85rem 1.35rem 3rem;
     }
     .page__masthead {
         flex-direction: column;
         align-items: flex-start;
+    }
+    .page__header {
+        padding: 1.5rem;
+    }
+    .page__title {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: initial;
     }
     .page__insignia {
         width: 72px;

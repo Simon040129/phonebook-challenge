@@ -198,11 +198,7 @@ const App = () => {
                 {visibleContacts.length > 0 ? (
                     <ul className="contacts__grid">
                         {visibleContacts.map((contact, index) => (
-                            <li
-                                key={contact.id}
-                                className="contacts__item"
-                                data-index={index + 1}
-                            >
+                            <li key={contact.id} className="contacts__item">
                                 <article
                                     className="contact-card"
                                     aria-labelledby={`contact-${contact.id}-name`}
