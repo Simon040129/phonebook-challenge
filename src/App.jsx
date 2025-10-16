@@ -4,21 +4,93 @@ import "./App.css";
 const FALLBACK_CONTACTS = [
     {
         id: 1,
-        name: "Ada Lovelace",
-        phone: "(555) 010-0101",
-        email: "ada@example.com",
+        name: "Captain Lyra Orion",
+        title: "Fleet Captain",
+        phone: "(555) 470-1020",
+        email: "lyra.orion@stellarhq.io",
+        photo: "https://i.pravatar.cc/150?img=11",
+        photoAlt: "Portrait of Captain Lyra Orion in a navy flight suit",
     },
     {
         id: 2,
-        name: "Alan Turing",
-        phone: "(555) 010-0102",
-        email: "alan@example.com",
+        name: "Navigator Juno Hale",
+        title: "Chief Navigator",
+        phone: "(555) 470-1021",
+        email: "juno.hale@stellarhq.io",
+        photo: "https://i.pravatar.cc/150?img=12",
+        photoAlt: "Portrait of Navigator Juno Hale reviewing a star chart",
     },
     {
         id: 3,
-        name: "Grace Hopper",
-        phone: "(555) 010-0103",
-        email: "grace@example.com",
+        name: "Dr. Elio Castor",
+        title: "Astrobiologist",
+        phone: "(555) 470-1022",
+        email: "elio.castor@stellarhq.io",
+        photo: "https://i.pravatar.cc/150?img=13",
+        photoAlt: "Portrait of Dr. Elio Castor in a lab coat",
+    },
+    {
+        id: 4,
+        name: "Commander Vega Sol",
+        title: "Mission Control",
+        phone: "(555) 470-1023",
+        email: "vega.sol@stellarhq.io",
+        photo: "https://i.pravatar.cc/150?img=14",
+        photoAlt: "Portrait of Commander Vega Sol at a command console",
+    },
+    {
+        id: 5,
+        name: "Technician Mira Quill",
+        title: "Systems Technician",
+        phone: "(555) 470-1024",
+        email: "mira.quill@stellarhq.io",
+        photo: "https://i.pravatar.cc/150?img=15",
+        photoAlt: "Portrait of Technician Mira Quill smiling with a toolkit",
+    },
+    {
+        id: 6,
+        name: "Scout Orion Pace",
+        title: "Deep Space Scout",
+        phone: "(555) 470-1025",
+        email: "orion.pace@stellarhq.io",
+        photo: "https://i.pravatar.cc/150?img=16",
+        photoAlt: "Portrait of Scout Orion Pace in an exploration suit",
+    },
+    {
+        id: 7,
+        name: "Engineer Tamsin Flux",
+        title: "Propulsion Engineer",
+        phone: "(555) 470-1026",
+        email: "tamsin.flux@stellarhq.io",
+        photo: "https://i.pravatar.cc/150?img=17",
+        photoAlt: "Portrait of Engineer Tamsin Flux wearing safety goggles",
+    },
+    {
+        id: 8,
+        name: "Archivist Lior Zenith",
+        title: "Galactic Archivist",
+        phone: "(555) 470-1027",
+        email: "lior.zenith@stellarhq.io",
+        photo: "https://i.pravatar.cc/150?img=18",
+        photoAlt: "Portrait of Archivist Lior Zenith in front of data displays",
+    },
+    {
+        id: 9,
+        name: "Specialist Kaia Drift",
+        title: "Communications Specialist",
+        phone: "(555) 470-1028",
+        email: "kaia.drift@stellarhq.io",
+        photo: "https://i.pravatar.cc/150?img=19",
+        photoAlt: "Portrait of Specialist Kaia Drift wearing a headset",
+    },
+    {
+        id: 10,
+        name: "Cadet Rian Pulse",
+        title: "Navigation Cadet",
+        phone: "(555) 470-1029",
+        email: "rian.pulse@stellarhq.io",
+        photo: "https://i.pravatar.cc/150?img=20",
+        photoAlt: "Portrait of Cadet Rian Pulse ready for training",
     },
 ];
 
@@ -31,6 +103,24 @@ const App = () => {
 
     const [query, setQuery] = useState("");
 
+    const visibleContacts = useMemo(() => {
+        const normalizedQuery = query.trim().toLowerCase();
+        const numericQuery = normalizedQuery.replace(/[^\d+]/g, "");
+
+        if (!normalizedQuery) {
+            return contacts;
+        }
+
+        return contacts.filter((contact) => {
+            const matchesName = contact.name.toLowerCase().includes(normalizedQuery);
+            const matchesPhone = numericQuery
+                ? contact.phone.replace(/[^\d+]/g, "").includes(numericQuery)
+                : false;
+
+            return matchesName || matchesPhone;
+        });
+    }, [contacts, query]);
+
     const [form, setForm] = useState({ name: "", phone: "", email: "" });
     function handleSubmit(e) {
         e.preventDefault();
@@ -40,34 +130,103 @@ const App = () => {
     return (
         <main className="page" data-testid="page-root">
             <header className="page__header">
-                <h1 className="page__title">Phonebook Challenge</h1>
-                <p className="page__subtitle">Build a simple contact directory</p>
+                <h1 className="page__title">Stellar Fleet Comms Directory</h1>
+                <p className="page__subtitle">
+                    Keep mission-critical contacts close for every interstellar
+                    jump.
+                </p>
             </header>
 
             <section className="search" aria-labelledby="search-heading">
-                <h2 id="search-heading">Search Contacts</h2>
+                <h2 id="search-heading">Search the Roster</h2>
                 <div className="search__controls">
                     <label htmlFor="search-input">Search</label>
                     <input
                         id="search-input"
                         type="search"
-                        placeholder="Search by name or phone"
+                        placeholder="Search by name or call sign"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         data-testid="search-input"
                     />
                 </div>
 
-                <p className="search__results" data-testid="results-count">
-                    Showing {contacts.length}{" "}
-                    {contacts.length === 1 ? "result" : "results"}
+                <p
+                    className="search__results"
+                    data-testid="results-count"
+                    aria-live="polite"
+                >
+                    Showing {visibleContacts.length}{" "}
+                    {visibleContacts.length === 1 ? "result" : "results"}
                     {loading ? " (loading...)" : ""}
                     {error ? ` (error: ${error})` : ""}
                 </p>
             </section>
 
             <section className="contacts" aria-labelledby="contacts-heading">
-                <h2 id="contacts-heading">Contacts</h2>
+                <h2 id="contacts-heading">Crew Roster</h2>
+                {visibleContacts.length > 0 ? (
+                    <ul className="contacts__grid">
+                        {visibleContacts.map((contact) => (
+                            <li key={contact.id}>
+                                <article
+                                    className="contact-card"
+                                    aria-labelledby={`contact-${contact.id}-name`}
+                                >
+                                    <img
+                                        className="contact-card__photo"
+                                        src={contact.photo}
+                                        alt={contact.photoAlt}
+                                        width="150"
+                                        height="150"
+                                        loading="lazy"
+                                    />
+                                    <div className="contact-card__content">
+                                        <h3
+                                            id={`contact-${contact.id}-name`}
+                                            className="contact-card__name"
+                                        >
+                                            {contact.name}
+                                        </h3>
+                                        {contact.title ? (
+                                            <p className="contact-card__title">
+                                                {contact.title}
+                                            </p>
+                                        ) : null}
+                                        <dl className="contact-card__details">
+                                            <dt className="contact-card__label">
+                                                Comms
+                                            </dt>
+                                            <dd className="contact-card__value">
+                                                <a
+                                                    href={`tel:${contact.phone.replace(
+                                                        /[^\d+]/g,
+                                                        ""
+                                                    )}`}
+                                                >
+                                                    {contact.phone}
+                                                </a>
+                                            </dd>
+                                            <dt className="contact-card__label">
+                                                Signal
+                                            </dt>
+                                            <dd className="contact-card__value">
+                                                <a href={`mailto:${contact.email}`}>
+                                                    {contact.email}
+                                                </a>
+                                            </dd>
+                                        </dl>
+                                    </div>
+                                </article>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <p className="contacts__empty">
+                        No crew members match that call sign. Try a different
+                        search.
+                    </p>
+                )}
             </section>
 
             <section className="form" aria-labelledby="form-heading">
@@ -78,6 +237,7 @@ const App = () => {
                         <input
                             id="name"
                             name="name"
+                            placeholder="E.g., Captain Nova Starling"
                             value={form.name}
                             onChange={(e) => setForm({ ...form, name: e.target.value })}
                             required
@@ -104,6 +264,7 @@ const App = () => {
                             id="email"
                             name="email"
                             type="email"
+                            placeholder="E.g., captain@stellarhq.io"
                             value={form.email}
                             onChange={(e) =>
                                 setForm({ ...form, email: e.target.value })
