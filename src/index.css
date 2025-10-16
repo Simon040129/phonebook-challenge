@@ -6,6 +6,9 @@
     --border: #2b2b2e;
     --surface: #16161a;
     --surface-alt: #1f1f24;
+    --panel: rgba(22, 28, 54, 0.72);
+    --panel-border: rgba(104, 120, 255, 0.2);
+    --focus-ring: rgba(124, 140, 255, 0.35);
     --input-bg: #1f1f24;
     --input-border: #2b2b30;
     --button-bg: #2b2b33;
@@ -20,8 +23,11 @@
         --heading: #111236;
         --muted: #6e6e73;
         --border: #d4d6dd;
-        --surface: #f6f7fb;
+        --surface: #eef0fb;
         --surface-alt: #ffffff;
+        --panel: rgba(255, 255, 255, 0.82);
+        --panel-border: rgba(47, 77, 212, 0.18);
+        --focus-ring: rgba(47, 77, 212, 0.38);
         --input-bg: #ffffff;
         --input-border: #c3c6d5;
         --button-bg: #3c5cff;
@@ -56,6 +62,11 @@ body {
         "Segoe UI Emoji";
     color: var(--fg);
     background: var(--bg);
+    background-image:
+        radial-gradient(1200px at 10% 10%, rgba(80, 102, 242, 0.14), transparent 60%),
+        radial-gradient(900px at 80% 0%, rgba(120, 54, 199, 0.18), transparent 65%),
+        radial-gradient(700px at 50% 100%, rgba(17, 178, 217, 0.18), transparent 60%);
+    min-height: 100%;
 }
 
 a {

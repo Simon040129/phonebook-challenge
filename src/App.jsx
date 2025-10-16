@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
+import fleetInsignia from "./assets/fleet-insignia.svg";
 
 const FALLBACK_CONTACTS = [
     {
@@ -130,15 +131,44 @@ const App = () => {
     return (
         <main className="page" data-testid="page-root">
             <header className="page__header">
-                <h1 className="page__title">Stellar Fleet Comms Directory</h1>
-                <p className="page__subtitle">
-                    Keep mission-critical contacts close for every interstellar
-                    jump.
-                </p>
+                <div className="page__masthead">
+                    <img
+                        src={fleetInsignia}
+                        alt="Stellar Fleet Command insignia"
+                        className="page__insignia"
+                    />
+                    <div className="page__titles">
+                        <p className="page__eyebrow">Stellar Fleet Command • Roster</p>
+                        <h1 className="page__title">Stellar Fleet Comms Directory</h1>
+                        <p className="page__subtitle">
+                            Maintain the latest comms intel for every officer cleared
+                            for deep-space expeditions.
+                        </p>
+                    </div>
+                </div>
+
+                <dl className="page__meta">
+                    <div className="page__meta-pair">
+                        <dt>Sector</dt>
+                        <dd>Andromeda Gate</dd>
+                    </div>
+                    <div className="page__meta-pair">
+                        <dt>Last Sync</dt>
+                        <dd>Stardate 99274.5</dd>
+                    </div>
+                    <div className="page__meta-pair">
+                        <dt>Clearance</dt>
+                        <dd>Command</dd>
+                    </div>
+                </dl>
             </header>
 
             <section className="search" aria-labelledby="search-heading">
                 <h2 id="search-heading">Search the Roster</h2>
+                <p className="search__intro">
+                    Filter by name or call sign to locate a crew member before
+                    initiating comms.
+                </p>
                 <div className="search__controls">
                     <label htmlFor="search-input">Search</label>
                     <input
@@ -167,8 +197,12 @@ const App = () => {
                 <h2 id="contacts-heading">Crew Roster</h2>
                 {visibleContacts.length > 0 ? (
                     <ul className="contacts__grid">
-                        {visibleContacts.map((contact) => (
-                            <li key={contact.id}>
+                        {visibleContacts.map((contact, index) => (
+                            <li
+                                key={contact.id}
+                                className="contacts__item"
+                                data-index={index + 1}
+                            >
                                 <article
                                     className="contact-card"
                                     aria-labelledby={`contact-${contact.id}-name`}
