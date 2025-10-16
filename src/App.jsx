@@ -281,8 +281,7 @@ const App = () => {
 
             <footer className="page__footer">
                 <small>
-                    Starter provided. Complete tasks per README and make this page
-                    shine.
+                    Live long and prosper.
                 </small>
             </footer>
         </main>
