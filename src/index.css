@@ -16,6 +16,9 @@
     --accent: #7c8cff;
     --masthead-fg: #f6f9ff;
     --masthead-muted: rgba(208, 214, 255, 0.75);
+    --toggle-bg: rgba(24, 30, 68, 0.7);
+    --toggle-inactive-fg: rgba(198, 205, 255, 0.85);
+    --toggle-inactive-hover: rgba(124, 140, 255, 0.22);
 }
 
 @media (prefers-color-scheme: light) {
@@ -37,6 +40,9 @@
         --accent: #2f4dd4;
         --masthead-fg: #f4f6ff;
         --masthead-muted: rgba(223, 227, 255, 0.78);
+        --toggle-bg: rgba(47, 77, 212, 0.08);
+        --toggle-inactive-fg: #2f4dd4;
+        --toggle-inactive-hover: rgba(47, 77, 212, 0.16);
     }
 }
 

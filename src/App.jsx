@@ -103,6 +103,8 @@ const App = () => {
     useEffect(() => {}, []);
 
     const [query, setQuery] = useState("");
+    const [viewMode, setViewMode] = useState("grid");
+    const [currentPage, setCurrentPage] = useState(0);
 
     const visibleContacts = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
@@ -122,11 +124,98 @@ const App = () => {
         });
     }, [contacts, query]);
 
+    useEffect(() => {
+        setCurrentPage((prev) => {
+            if (visibleContacts.length === 0) {
+                return 0;
+            }
+            return Math.min(prev, visibleContacts.length - 1);
+        });
+    }, [visibleContacts]);
+
+    useEffect(() => {
+        setCurrentPage(0);
+    }, [query, viewMode]);
+
+    const currentContact =
+        viewMode === "single" && visibleContacts.length > 0
+            ? visibleContacts[currentPage]
+            : null;
+
     const [form, setForm] = useState({ name: "", phone: "", email: "" });
     function handleSubmit(e) {
         e.preventDefault();
         // Add contact submission logic here
     }
+
+    const handlePrev = () => {
+        setCurrentPage((prev) => Math.max(prev - 1, 0));
+    };
+
+    const handleNext = () => {
+        setCurrentPage((prev) =>
+            Math.min(prev + 1, Math.max(visibleContacts.length - 1, 0))
+        );
+    };
+
+    const handleViewToggle = (mode) => {
+        setViewMode(mode);
+    };
+
+    const renderContactCard = (contact, variant = "grid") => (
+        <article
+            className={`contact-card contact-card--${variant}`}
+            aria-labelledby={`contact-${contact.id}-name`}
+        >
+            <img
+                className={`contact-card__photo contact-card__photo--${variant}`}
+                src={contact.photo}
+                alt={contact.photoAlt}
+                width="150"
+                height="150"
+                loading="lazy"
+            />
+            <div className={`contact-card__content contact-card__content--${variant}`}>
+                <h3
+                    id={`contact-${contact.id}-name`}
+                    className="contact-card__name"
+                    data-testid="contact-name"
+                >
+                    {contact.name}
+                </h3>
+                {contact.title ? (
+                    <p className="contact-card__title">{contact.title}</p>
+                ) : null}
+                <dl className="contact-card__details">
+                    <dt className="contact-card__label">Comms</dt>
+                    <dd className="contact-card__value">
+                        <a href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}>
+                            {contact.phone}
+                        </a>
+                    </dd>
+                    <dt className="contact-card__label">Signal</dt>
+                    <dd className="contact-card__value">
+                        <a href={`mailto:${contact.email}`}>{contact.email}</a>
+                    </dd>
+                </dl>
+            </div>
+        </article>
+    );
+
+    const isSingleView = viewMode === "single";
+    const hasContacts = visibleContacts.length > 0;
+    const canGoPrev = currentPage > 0;
+    const canGoNext = currentPage < visibleContacts.length - 1;
+    const paginationTotals = {
+        current: hasContacts ? currentPage + 1 : 0,
+        total: visibleContacts.length,
+    };
+
+    const paginationMessage = hasContacts
+        ? isSingleView
+            ? `Officer ${paginationTotals.current} of ${paginationTotals.total}`
+            : `${paginationTotals.total} officers in view`
+        : "No officers to display";
 
     return (
         <main className="page" data-testid="page-root">
@@ -194,69 +283,81 @@ const App = () => {
             </section>
 
             <section className="contacts" aria-labelledby="contacts-heading">
-                <h2 id="contacts-heading">Crew Roster</h2>
-                {visibleContacts.length > 0 ? (
+                <div className="contacts__header">
+                    <h2 id="contacts-heading">Crew Roster</h2>
+                    <div className="view-toggle" role="group" aria-label="Roster view mode">
+                        <button
+                            type="button"
+                            className={`view-toggle__btn${
+                                isSingleView ? "" : " is-inactive"
+                            }`}
+                            aria-pressed={isSingleView}
+                            onClick={() => handleViewToggle("single")}
+                        >
+                            Single Officer
+                        </button>
+                        <button
+                            type="button"
+                            className={`view-toggle__btn${
+                                viewMode === "grid" ? "" : " is-inactive"
+                            }`}
+                            aria-pressed={viewMode === "grid"}
+                            onClick={() => handleViewToggle("grid")}
+                        >
+                            Squadron Grid
+                        </button>
+                    </div>
+                </div>
+
+                {isSingleView ? (
+                    hasContacts ? (
+                        <div className="contact-profile" data-testid="single-contact">
+                            {renderContactCard(currentContact, "single")}
+                        </div>
+                    ) : (
+                        <p className="contacts__empty">
+                            No crew members match that call sign. Try a different search.
+                        </p>
+                    )
+                ) : hasContacts ? (
                     <ul className="contacts__grid">
-                        {visibleContacts.map((contact, index) => (
+                        {visibleContacts.map((contact) => (
                             <li key={contact.id} className="contacts__item">
-                                <article
-                                    className="contact-card"
-                                    aria-labelledby={`contact-${contact.id}-name`}
-                                >
-                                    <img
-                                        className="contact-card__photo"
-                                        src={contact.photo}
-                                        alt={contact.photoAlt}
-                                        width="150"
-                                        height="150"
-                                        loading="lazy"
-                                    />
-                                    <div className="contact-card__content">
-                                        <h3
-                                            id={`contact-${contact.id}-name`}
-                                            className="contact-card__name"
-                                        >
-                                            {contact.name}
-                                        </h3>
-                                        {contact.title ? (
-                                            <p className="contact-card__title">
-                                                {contact.title}
-                                            </p>
-                                        ) : null}
-                                        <dl className="contact-card__details">
-                                            <dt className="contact-card__label">
-                                                Comms
-                                            </dt>
-                                            <dd className="contact-card__value">
-                                                <a
-                                                    href={`tel:${contact.phone.replace(
-                                                        /[^\d+]/g,
-                                                        ""
-                                                    )}`}
-                                                >
-                                                    {contact.phone}
-                                                </a>
-                                            </dd>
-                                            <dt className="contact-card__label">
-                                                Signal
-                                            </dt>
-                                            <dd className="contact-card__value">
-                                                <a href={`mailto:${contact.email}`}>
-                                                    {contact.email}
-                                                </a>
-                                            </dd>
-                                        </dl>
-                                    </div>
-                                </article>
+                                {renderContactCard(contact)}
                             </li>
                         ))}
                     </ul>
                 ) : (
                     <p className="contacts__empty">
-                        No crew members match that call sign. Try a different
-                        search.
+                        No crew members match that call sign. Try a different search.
                     </p>
                 )}
+
+                <nav
+                    className="pagination"
+                    aria-label="Roster pagination"
+                    data-view={viewMode}
+                >
+                    <button
+                        type="button"
+                        className="btn btn--ghost"
+                        onClick={handlePrev}
+                        disabled={!hasContacts || !canGoPrev || !isSingleView}
+                    >
+                        Previous
+                    </button>
+                    <p className="pagination__status" aria-live="polite">
+                        {paginationMessage}
+                    </p>
+                    <button
+                        type="button"
+                        className="btn btn--ghost"
+                        onClick={handleNext}
+                        disabled={!hasContacts || !canGoNext || !isSingleView}
+                    >
+                        Next
+                    </button>
+                </nav>
             </section>
 
             <section className="form" aria-labelledby="form-heading">
