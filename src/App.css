@@ -281,6 +281,12 @@
     color: var(--muted);
 }
 
+.contacts__loading {
+    margin-top: 1rem;
+    color: var(--muted);
+    font-style: italic;
+}
+
 .view-toggle {
     display: inline-flex;
     background: var(--toggle-bg);
@@ -330,6 +336,23 @@
 .contact-profile {
     display: grid;
     justify-items: center;
+    gap: 1.5rem;
+}
+
+.contact-card--interactive {
+    cursor: pointer;
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.contact-card--interactive:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 28px rgba(15, 22, 50, 0.28);
+    border-color: rgba(124, 140, 255, 0.35);
+}
+
+.contact-card--interactive:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring), 0 14px 28px rgba(15, 22, 50, 0.3);
 }
 
 .contact-card--single {
@@ -352,6 +375,39 @@
 
 .contact-card__content--single {
     gap: 0.75rem;
+}
+
+.contact-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.contact-editor {
+    display: grid;
+    gap: 0.75rem 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    width: min(720px, 100%);
+}
+
+.contact-editor__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    grid-column: 1 / -1;
+}
+
+.status-message {
+    margin: 0.5rem 0 0;
+    font-size: 0.9rem;
+    color: color-mix(in srgb, var(--accent) 72%, var(--fg) 28%);
+    text-align: center;
+}
+
+.form__status {
+    grid-column: 1 / -1;
+    margin: 0.25rem 0 0;
 }
 
 .form {
@@ -452,6 +508,29 @@ select:focus-visible {
     box-shadow: none;
 }
 
+.btn--danger {
+    background: linear-gradient(135deg, rgba(255, 108, 132, 0.88), rgba(214, 45, 82, 0.92));
+    border: 1px solid rgba(255, 120, 140, 0.6);
+    color: #fff;
+    box-shadow: 0 12px 20px rgba(214, 45, 82, 0.22);
+}
+
+.btn--danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 28px rgba(214, 45, 82, 0.28);
+}
+
+.btn--danger:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 120, 140, 0.35), 0 12px 24px rgba(214, 45, 82, 0.3);
+}
+
+.btn--danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
 .btn--ghost:disabled {
     opacity: 0.45;
     cursor: not-allowed;
@@ -506,5 +585,14 @@ select:focus-visible {
         justify-items: center;
         gap: 0.75rem;
         text-align: center;
+    }
+    .contact-editor {
+        grid-template-columns: 1fr;
+    }
+    .contact-editor__actions {
+        justify-content: center;
+    }
+    .contact-actions {
+        justify-content: center;
     }
 }

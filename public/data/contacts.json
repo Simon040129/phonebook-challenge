@@ -1,32 +1,92 @@
 [
     {
-        "id": 101,
-        "name": "Ada Lovelace",
-        "phone": "(555) 010-0101",
-        "email": "ada@example.com"
+        "id": 1001,
+        "name": "Captain Lyra Orion",
+        "title": "Fleet Captain",
+        "phone": "(555) 470-1020",
+        "email": "lyra.orion@stellarhq.io",
+        "photo": "https://i.pravatar.cc/150?img=11",
+        "photoAlt": "Portrait of Captain Lyra Orion in a navy flight suit"
     },
     {
-        "id": 102,
-        "name": "Alan Turing",
-        "phone": "(555) 010-0102",
-        "email": "alan@example.com"
+        "id": 1002,
+        "name": "Navigator Juno Hale",
+        "title": "Chief Navigator",
+        "phone": "(555) 470-1021",
+        "email": "juno.hale@stellarhq.io",
+        "photo": "https://i.pravatar.cc/150?img=12",
+        "photoAlt": "Portrait of Navigator Juno Hale reviewing a star chart"
     },
     {
-        "id": 103,
-        "name": "Grace Hopper",
-        "phone": "(555) 010-0103",
-        "email": "grace@example.com"
+        "id": 1003,
+        "name": "Dr. Elio Castor",
+        "title": "Astrobiologist",
+        "phone": "(555) 470-1022",
+        "email": "elio.castor@stellarhq.io",
+        "photo": "https://i.pravatar.cc/150?img=13",
+        "photoAlt": "Portrait of Dr. Elio Castor in a lab coat"
     },
     {
-        "id": 104,
-        "name": "Katherine Johnson",
-        "phone": "(555) 010-0104",
-        "email": "katherine@example.com"
+        "id": 1004,
+        "name": "Commander Vega Sol",
+        "title": "Mission Control",
+        "phone": "(555) 470-1023",
+        "email": "vega.sol@stellarhq.io",
+        "photo": "https://i.pravatar.cc/150?img=14",
+        "photoAlt": "Portrait of Commander Vega Sol at a command console"
     },
     {
-        "id": 105,
-        "name": "Donald Knuth",
-        "phone": "(555) 010-0105",
-        "email": "donald@example.com"
+        "id": 1005,
+        "name": "Technician Mira Quill",
+        "title": "Systems Technician",
+        "phone": "(555) 470-1024",
+        "email": "mira.quill@stellarhq.io",
+        "photo": "https://i.pravatar.cc/150?img=15",
+        "photoAlt": "Portrait of Technician Mira Quill smiling with a toolkit"
+    },
+    {
+        "id": 1006,
+        "name": "Scout Orion Pace",
+        "title": "Deep Space Scout",
+        "phone": "(555) 470-1025",
+        "email": "orion.pace@stellarhq.io",
+        "photo": "https://i.pravatar.cc/150?img=16",
+        "photoAlt": "Portrait of Scout Orion Pace in an exploration suit"
+    },
+    {
+        "id": 1007,
+        "name": "Engineer Tamsin Flux",
+        "title": "Propulsion Engineer",
+        "phone": "(555) 470-1026",
+        "email": "tamsin.flux@stellarhq.io",
+        "photo": "https://i.pravatar.cc/150?img=17",
+        "photoAlt": "Portrait of Engineer Tamsin Flux wearing safety goggles"
+    },
+    {
+        "id": 1008,
+        "name": "Archivist Lior Zenith",
+        "title": "Galactic Archivist",
+        "phone": "(555) 470-1027",
+        "email": "lior.zenith@stellarhq.io",
+        "photo": "https://i.pravatar.cc/150?img=18",
+        "photoAlt": "Portrait of Archivist Lior Zenith in front of data displays"
+    },
+    {
+        "id": 1009,
+        "name": "Specialist Kaia Drift",
+        "title": "Communications Specialist",
+        "phone": "(555) 470-1028",
+        "email": "kaia.drift@stellarhq.io",
+        "photo": "https://i.pravatar.cc/150?img=19",
+        "photoAlt": "Portrait of Specialist Kaia Drift wearing a headset"
+    },
+    {
+        "id": 1010,
+        "name": "Cadet Rian Pulse",
+        "title": "Navigation Cadet",
+        "phone": "(555) 470-1029",
+        "email": "rian.pulse@stellarhq.io",
+        "photo": "https://i.pravatar.cc/150?img=20",
+        "photoAlt": "Portrait of Cadet Rian Pulse ready for training"
     }
 ]
