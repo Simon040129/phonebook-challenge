@@ -51,6 +51,9 @@ async function parseJsonBody(req) {
 function sendJson(res, statusCode, payload) {
     res.statusCode = statusCode;
     res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     res.end(JSON.stringify(payload));
 }
 
@@ -82,6 +85,18 @@ export default defineConfig({
             const id = segments.length > 2 ? segments[2] : null;
 
             try {
+                server.config.logger.info(
+                    `[contacts-api] ${req.method} ${url.pathname}${url.search}`,
+                );
+                if (req.method === 'OPTIONS') {
+                    res.statusCode = 204;
+                    res.setHeader('Access-Control-Allow-Origin', '*');
+                    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+                    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+                    res.end();
+                    return;
+                }
+
                 if (req.method === 'GET' && segments.length === 2) {
                     const contacts = await readContactsFile();
                     sendJson(res, 200, { contacts });
@@ -119,6 +134,9 @@ export default defineConfig({
                         notFound(res);
                         return;
                     }
+                    server.config.logger.info(
+                        `[contacts-api] Writing ${contacts.length} contacts after mutation`,
+                    );
                     contacts[index] = { ...contacts[index], ...body, id: contacts[index].id };
                     await writeContactsFile(contacts);
                     sendJson(res, 200, { contact: contacts[index] });
@@ -134,6 +152,9 @@ export default defineConfig({
                         notFound(res);
                         return;
                     }
+                    server.config.logger.info(
+                        `[contacts-api] Deleting contact ${id}, remaining ${nextContacts.length}`,
+                    );
                     await writeContactsFile(nextContacts);
                     sendJson(res, 200, { success: true });
                     return;
