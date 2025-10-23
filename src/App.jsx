@@ -2,6 +2,33 @@ import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import fleetInsignia from "./assets/fleet-insignia.svg";
 
+const createAvatarUrl = (seed) =>
+    `https://i.pravatar.cc/300?u=${encodeURIComponent(String(seed ?? "fleet"))}`;
+
+function normalizeContact(rawContact = {}, index = 0) {
+    const id = rawContact.id ?? Date.now() + index;
+    const name = rawContact.name?.toString().trim() || "Unknown Officer";
+    const email = rawContact.email?.toString().trim() || "";
+    const phone = rawContact.phone?.toString().trim() || "";
+    const title = rawContact.title ?? "Mission Specialist";
+    const photo =
+        rawContact.photo ??
+        createAvatarUrl(email || name || `${id}-${index ?? 0}`);
+    const photoAlt =
+        rawContact.photoAlt ?? `Portrait of ${name}${title ? ` – ${title}` : ""}`;
+
+    return {
+        ...rawContact,
+        id,
+        name,
+        title,
+        phone,
+        email,
+        photo,
+        photoAlt,
+    };
+}
+
 const FALLBACK_CONTACTS = [
     {
         id: 1,
@@ -95,12 +122,59 @@ const FALLBACK_CONTACTS = [
     },
 ];
 
+const INITIAL_CONTACTS = FALLBACK_CONTACTS.map((contact, index) =>
+    normalizeContact(contact, index)
+);
+
 const App = () => {
-    const [contacts, setContacts] = useState(FALLBACK_CONTACTS);
-    const [loading, setLoading] = useState(false);
+    const [contacts, setContacts] = useState(INITIAL_CONTACTS);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    useEffect(() => {}, []);
+    useEffect(() => {
+        let isActive = true;
+
+        const fetchContacts = async () => {
+            try {
+                setLoading(true);
+                setError(null);
+                const response = await fetch("/data/contacts.json");
+                if (!response.ok) {
+                    throw new Error(`Request failed with status ${response.status}`);
+                }
+                const data = await response.json();
+                if (!isActive) {
+                    return;
+                }
+
+                if (Array.isArray(data) && data.length > 0) {
+                    const normalized = data.map((contact, index) =>
+                        normalizeContact(contact, index)
+                    );
+                    setContacts(normalized);
+                } else {
+                    setContacts(INITIAL_CONTACTS);
+                }
+            } catch (err) {
+                if (!isActive) {
+                    return;
+                }
+                console.error("Failed to fetch contacts", err);
+                setError("Unable to sync roster data. Showing fallback crew.");
+                setContacts(INITIAL_CONTACTS);
+            } finally {
+                if (isActive) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchContacts();
+
+        return () => {
+            isActive = false;
+        };
+    }, []);
 
     const [query, setQuery] = useState("");
     const [viewMode, setViewMode] = useState("grid");
@@ -143,9 +217,85 @@ const App = () => {
             : null;
 
     const [form, setForm] = useState({ name: "", phone: "", email: "" });
+    const [formErrors, setFormErrors] = useState({});
+
+    const validateField = (field, value) => {
+        const trimmed = value.trim();
+        switch (field) {
+            case "name": {
+                if (!trimmed) {
+                    return "Name is required.";
+                }
+                if (trimmed.length < 2) {
+                    return "Name must be at least 2 characters.";
+                }
+                return "";
+            }
+            case "phone": {
+                if (!trimmed) {
+                    return "Phone is required.";
+                }
+                const digits = trimmed.replace(/[^\d+]/g, "");
+                if (digits.length < 7) {
+                    return "Enter a valid phone number.";
+                }
+                return "";
+            }
+            case "email": {
+                if (!trimmed) {
+                    return "Email is required.";
+                }
+                if (!trimmed.includes("@")) {
+                    return "Email must include @.";
+                }
+                return "";
+            }
+            default:
+                return "";
+        }
+    };
+
+    const validateForm = (values) => {
+        const nextErrors = {};
+        ["name", "phone", "email"].forEach((field) => {
+            const error = validateField(field, values[field]);
+            if (error) {
+                nextErrors[field] = error;
+            }
+        });
+        return nextErrors;
+    };
+
+    const handleInputChange = (field) => (event) => {
+        const { value } = event.target;
+        setForm((prev) => ({ ...prev, [field]: value }));
+        setFormErrors((prev) => {
+            const { [field]: _removed, ...rest } = prev;
+            const error = validateField(field, value);
+            return error ? { ...rest, [field]: error } : rest;
+        });
+    };
+
     function handleSubmit(e) {
         e.preventDefault();
-        // Add contact submission logic here
+        const validation = validateForm(form);
+        setFormErrors(validation);
+        if (Object.keys(validation).length > 0) {
+            return;
+        }
+
+        const newContact = normalizeContact({
+            id: Date.now(),
+            name: form.name.trim(),
+            phone: form.phone.trim(),
+            email: form.email.trim(),
+            title: "Guest Officer",
+        });
+
+        setContacts((prev) => [newContact, ...prev]);
+        setForm({ name: "", phone: "", email: "" });
+        setFormErrors({});
+        setCurrentPage(0);
     }
 
     const handlePrev = () => {
@@ -159,6 +309,9 @@ const App = () => {
     };
 
     const handleViewToggle = (mode) => {
+        if (mode === viewMode) {
+            return;
+        }
         setViewMode(mode);
     };
 
@@ -363,19 +516,27 @@ const App = () => {
             <section className="form" aria-labelledby="form-heading">
                 <h2 id="form-heading">Add a Contact</h2>
                 <form className="form__body" onSubmit={handleSubmit} noValidate>
-                    <div className="field">
+                    <div className={`field${formErrors.name ? " field--error" : ""}`}>
                         <label htmlFor="name">Name</label>
                         <input
                             id="name"
                             name="name"
                             placeholder="E.g., Captain Nova Starling"
                             value={form.name}
-                            onChange={(e) => setForm({ ...form, name: e.target.value })}
+                            onChange={handleInputChange("name")}
                             required
                             minLength={2}
+                            aria-invalid={Boolean(formErrors.name)}
+                            aria-describedby={formErrors.name ? "name-error" : undefined}
+                            autoComplete="name"
                         />
+                        {formErrors.name ? (
+                            <p className="field__error" id="name-error" role="alert">
+                                {formErrors.name}
+                            </p>
+                        ) : null}
                     </div>
-                    <div className="field">
+                    <div className={`field${formErrors.phone ? " field--error" : ""}`}>
                         <label htmlFor="phone">Phone</label>
                         <input
                             id="phone"
@@ -383,13 +544,19 @@ const App = () => {
                             inputMode="tel"
                             placeholder="(555) 555-5555"
                             value={form.phone}
-                            onChange={(e) =>
-                                setForm({ ...form, phone: e.target.value })
-                            }
+                            onChange={handleInputChange("phone")}
                             required
+                            aria-invalid={Boolean(formErrors.phone)}
+                            aria-describedby={formErrors.phone ? "phone-error" : undefined}
+                            autoComplete="tel"
                         />
+                        {formErrors.phone ? (
+                            <p className="field__error" id="phone-error" role="alert">
+                                {formErrors.phone}
+                            </p>
+                        ) : null}
                     </div>
-                    <div className="field">
+                    <div className={`field${formErrors.email ? " field--error" : ""}`}>
                         <label htmlFor="email">Email</label>
                         <input
                             id="email"
@@ -397,10 +564,17 @@ const App = () => {
                             type="email"
                             placeholder="E.g., captain@stellarhq.io"
                             value={form.email}
-                            onChange={(e) =>
-                                setForm({ ...form, email: e.target.value })
-                            }
+                            onChange={handleInputChange("email")}
+                            required
+                            aria-invalid={Boolean(formErrors.email)}
+                            aria-describedby={formErrors.email ? "email-error" : undefined}
+                            autoComplete="email"
                         />
+                        {formErrors.email ? (
+                            <p className="field__error" id="email-error" role="alert">
+                                {formErrors.email}
+                            </p>
+                        ) : null}
                     </div>
                     <div className="form__actions">
                         <button className="btn" type="submit" data-testid="btn-add">

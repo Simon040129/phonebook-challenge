@@ -374,6 +374,24 @@
     gap: 0.25rem;
 }
 
+.field--error input,
+.field--error select {
+    border-color: rgba(255, 115, 140, 0.9);
+    box-shadow: 0 0 0 2px rgba(255, 115, 140, 0.18);
+}
+
+.field--error input:focus-visible,
+.field--error select:focus-visible {
+    border-color: rgba(255, 138, 158, 0.95);
+    box-shadow: 0 0 0 3px rgba(255, 115, 140, 0.35);
+}
+
+.field__error {
+    margin: 0;
+    font-size: 0.8rem;
+    color: rgba(255, 138, 158, 0.95);
+}
+
 input,
 select {
     border-radius: 8px;
