@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 import fleetInsignia from "./assets/fleet-insignia.svg";
+// import Contact from "./components/Contact/Contact";
 
 const FALLBACK_CONTACTS = [
     {
