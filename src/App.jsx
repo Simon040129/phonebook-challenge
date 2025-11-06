@@ -179,6 +179,9 @@ const App = () => {
     const [query, setQuery] = useState("");
     const [viewMode, setViewMode] = useState("grid");
     const [currentPage, setCurrentPage] = useState(0);
+    const [editingContactId, setEditingContactId] = useState(null);
+    const [editForm, setEditForm] = useState({ name: "", phone: "", email: "" });
+    const [editErrors, setEditErrors] = useState({});
 
     const visibleContacts = useMemo(() => {
         const normalizedQuery = query.trim().toLowerCase();
@@ -203,18 +206,52 @@ const App = () => {
             if (visibleContacts.length === 0) {
                 return 0;
             }
-            return Math.min(prev, visibleContacts.length - 1);
+            const size = viewMode === "grid" ? 9 : 1;
+            const maxPage = Math.max(Math.ceil(visibleContacts.length / size) - 1, 0);
+            return Math.min(prev, maxPage);
         });
-    }, [visibleContacts]);
+    }, [visibleContacts, viewMode]);
 
     useEffect(() => {
         setCurrentPage(0);
-    }, [query, viewMode]);
+    }, [query]);
+
+    const pageSize = viewMode === "grid" ? 9 : 1;
+    const hasContacts = visibleContacts.length > 0;
+    const totalPages = hasContacts
+        ? Math.max(Math.ceil(visibleContacts.length / pageSize), 1)
+        : 0;
+    const currentIndex = Math.min(
+        currentPage * pageSize,
+        Math.max(visibleContacts.length - 1, 0)
+    );
 
     const currentContact =
-        viewMode === "single" && visibleContacts.length > 0
-            ? visibleContacts[currentPage]
-            : null;
+        viewMode === "single" && hasContacts ? visibleContacts[currentIndex] : null;
+
+    const paginatedContacts =
+        viewMode === "grid"
+            ? visibleContacts.slice(
+                  currentPage * pageSize,
+                  currentPage * pageSize + pageSize
+              )
+            : visibleContacts;
+
+    useEffect(() => {
+        if (!editingContactId) {
+            return;
+        }
+        const nextContact = contacts.find(
+            (contact) => contact.id === editingContactId
+        );
+        if (nextContact) {
+            setEditForm({
+                name: nextContact.name,
+                phone: nextContact.phone,
+                email: nextContact.email,
+            });
+        }
+    }, [contacts, editingContactId]);
 
     const [form, setForm] = useState({ name: "", phone: "", email: "" });
     const [formErrors, setFormErrors] = useState({});
@@ -276,6 +313,16 @@ const App = () => {
         });
     };
 
+    const handleEditChange = (field) => (event) => {
+        const { value } = event.target;
+        setEditForm((prev) => ({ ...prev, [field]: value }));
+        setEditErrors((prev) => {
+            const { [field]: _removed, ...rest } = prev;
+            const error = validateField(field, value);
+            return error ? { ...rest, [field]: error } : rest;
+        });
+    };
+
     function handleSubmit(e) {
         e.preventDefault();
         const validation = validateForm(form);
@@ -298,14 +345,71 @@ const App = () => {
         setCurrentPage(0);
     }
 
+    const beginEdit = (contact) => {
+        setEditingContactId(contact.id);
+        setEditForm({
+            name: contact.name,
+            phone: contact.phone,
+            email: contact.email,
+        });
+        setEditErrors({});
+    };
+
+    const cancelEdit = () => {
+        setEditingContactId(null);
+        setEditErrors({});
+    };
+
+    const handleEditSubmit = (event) => {
+        event.preventDefault();
+        if (!editingContactId) {
+            return;
+        }
+        const validation = validateForm(editForm);
+        setEditErrors(validation);
+        if (Object.keys(validation).length > 0) {
+            return;
+        }
+
+        setContacts((prev) =>
+            prev.map((contact) =>
+                contact.id === editingContactId
+                    ? normalizeContact({
+                          ...contact,
+                          name: editForm.name.trim(),
+                          phone: editForm.phone.trim(),
+                          email: editForm.email.trim(),
+                      })
+                    : contact
+            )
+        );
+        setEditingContactId(null);
+        setEditErrors({});
+    };
+
+    const handleDelete = (contactId) => {
+        const confirmDelete =
+            typeof window !== "undefined"
+                ? window.confirm("Remove this officer from the roster?")
+                : true;
+        if (!confirmDelete) {
+            return;
+        }
+        setContacts((prev) => prev.filter((contact) => contact.id !== contactId));
+        setEditingContactId((prev) => (prev === contactId ? null : prev));
+        setEditErrors({});
+    };
+
     const handlePrev = () => {
         setCurrentPage((prev) => Math.max(prev - 1, 0));
+        setEditingContactId(null);
+        setEditErrors({});
     };
 
     const handleNext = () => {
-        setCurrentPage((prev) =>
-            Math.min(prev + 1, Math.max(visibleContacts.length - 1, 0))
-        );
+        setCurrentPage((prev) => Math.min(prev + 1, Math.max(totalPages - 1, 0)));
+        setEditingContactId(null);
+        setEditErrors({});
     };
 
     const handleViewToggle = (mode) => {
@@ -313,13 +417,41 @@ const App = () => {
             return;
         }
         setViewMode(mode);
+        setCurrentPage(0);
+        setEditingContactId(null);
+        setEditErrors({});
     };
 
-    const renderContactCard = (contact, variant = "grid") => (
-        <article
-            className={`contact-card contact-card--${variant}`}
-            aria-labelledby={`contact-${contact.id}-name`}
-        >
+    const handleSelectContact = (contactIndex) => {
+        setViewMode("single");
+        setCurrentPage(contactIndex);
+        setEditingContactId(null);
+        setEditErrors({});
+    };
+
+    const renderContactCard = (contact, variant = "grid", options = {}) => {
+        const { actions, onSelect } = options;
+        return (
+            <article
+                className={`contact-card contact-card--${variant}${
+                    onSelect ? " contact-card--interactive" : ""
+                }`}
+                aria-labelledby={`contact-${contact.id}-name`}
+                {...(onSelect
+                    ? {
+                          role: "button",
+                          tabIndex: 0,
+                          onClick: onSelect,
+                          onKeyDown: (event) => {
+                              if (event.key === "Enter" || event.key === " ") {
+                                  event.preventDefault();
+                                  onSelect();
+                              }
+                          },
+                          "aria-label": `View ${contact.name} details`,
+                      }
+                    : {})}
+            >
             <img
                 className={`contact-card__photo contact-card__photo--${variant}`}
                 src={contact.photo}
@@ -352,22 +484,23 @@ const App = () => {
                     </dd>
                 </dl>
             </div>
+            {variant === "single" && actions ? (
+                <div className="contact-card__actions">{actions}</div>
+            ) : null}
         </article>
-    );
-
-    const isSingleView = viewMode === "single";
-    const hasContacts = visibleContacts.length > 0;
-    const canGoPrev = currentPage > 0;
-    const canGoNext = currentPage < visibleContacts.length - 1;
-    const paginationTotals = {
-        current: hasContacts ? currentPage + 1 : 0,
-        total: visibleContacts.length,
+        );
     };
 
+    const isSingleView = viewMode === "single";
+    const canGoPrev = currentPage > 0;
+    const canGoNext = currentPage < Math.max(totalPages - 1, 0);
     const paginationMessage = hasContacts
         ? isSingleView
-            ? `Officer ${paginationTotals.current} of ${paginationTotals.total}`
-            : `${paginationTotals.total} officers in view`
+            ? `Officer ${currentPage + 1} of ${visibleContacts.length}`
+            : `Officers ${currentPage * pageSize + 1}-${Math.min(
+                  currentPage * pageSize + pageSize,
+                  visibleContacts.length
+              )} of ${visibleContacts.length}`
         : "No officers to display";
 
     return (
@@ -465,7 +598,141 @@ const App = () => {
                 {isSingleView ? (
                     hasContacts ? (
                         <div className="contact-profile" data-testid="single-contact">
-                            {renderContactCard(currentContact, "single")}
+                            {renderContactCard(currentContact, "single", {
+                                actions: (
+                                    <>
+                                        <button
+                                            type="button"
+                                            className="btn"
+                                            onClick={() => beginEdit(currentContact)}
+                                        >
+                                            Edit Officer
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn--ghost"
+                                            onClick={() => handleDelete(currentContact.id)}
+                                        >
+                                            Delete Officer
+                                        </button>
+                                    </>
+                                ),
+                            })}
+                            {editingContactId === currentContact.id ? (
+                                <form
+                                    className="contact-edit"
+                                    onSubmit={handleEditSubmit}
+                                    noValidate
+                                >
+                                    <div className="contact-edit__grid">
+                                        <div
+                                            className={`field${
+                                                editErrors.name ? " field--error" : ""
+                                            }`}
+                                        >
+                                            <label htmlFor="edit-name">Name</label>
+                                            <input
+                                                id="edit-name"
+                                                name="edit-name"
+                                                value={editForm.name}
+                                                onChange={handleEditChange("name")}
+                                                required
+                                                minLength={2}
+                                                autoComplete="name"
+                                                aria-invalid={Boolean(editErrors.name)}
+                                                aria-describedby={
+                                                    editErrors.name
+                                                        ? "edit-name-error"
+                                                        : undefined
+                                                }
+                                            />
+                                            {editErrors.name ? (
+                                                <p
+                                                    className="field__error"
+                                                    id="edit-name-error"
+                                                    role="alert"
+                                                >
+                                                    {editErrors.name}
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                        <div
+                                            className={`field${
+                                                editErrors.phone ? " field--error" : ""
+                                            }`}
+                                        >
+                                            <label htmlFor="edit-phone">Phone</label>
+                                            <input
+                                                id="edit-phone"
+                                                name="edit-phone"
+                                                value={editForm.phone}
+                                                onChange={handleEditChange("phone")}
+                                                required
+                                                inputMode="tel"
+                                                autoComplete="tel"
+                                                aria-invalid={Boolean(editErrors.phone)}
+                                                aria-describedby={
+                                                    editErrors.phone
+                                                        ? "edit-phone-error"
+                                                        : undefined
+                                                }
+                                            />
+                                            {editErrors.phone ? (
+                                                <p
+                                                    className="field__error"
+                                                    id="edit-phone-error"
+                                                    role="alert"
+                                                >
+                                                    {editErrors.phone}
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                        <div
+                                            className={`field${
+                                                editErrors.email ? " field--error" : ""
+                                            }`}
+                                        >
+                                            <label htmlFor="edit-email">Email</label>
+                                            <input
+                                                id="edit-email"
+                                                name="edit-email"
+                                                type="email"
+                                                value={editForm.email}
+                                                onChange={handleEditChange("email")}
+                                                required
+                                                autoComplete="email"
+                                                aria-invalid={Boolean(editErrors.email)}
+                                                aria-describedby={
+                                                    editErrors.email
+                                                        ? "edit-email-error"
+                                                        : undefined
+                                                }
+                                            />
+                                            {editErrors.email ? (
+                                                <p
+                                                    className="field__error"
+                                                    id="edit-email-error"
+                                                    role="alert"
+                                                >
+                                                    {editErrors.email}
+                                                </p>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                    <div className="contact-edit__actions">
+                                        <button className="btn" type="submit">
+                                            Save Changes
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="btn btn--ghost"
+                                            onClick={cancelEdit}
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            ) : null}
                         </div>
                     ) : (
                         <p className="contacts__empty">
@@ -474,11 +741,16 @@ const App = () => {
                     )
                 ) : hasContacts ? (
                     <ul className="contacts__grid">
-                        {visibleContacts.map((contact) => (
-                            <li key={contact.id} className="contacts__item">
-                                {renderContactCard(contact)}
-                            </li>
-                        ))}
+                        {paginatedContacts.map((contact, index) => {
+                            const contactIndex = currentPage * pageSize + index;
+                            return (
+                                <li key={contact.id} className="contacts__item">
+                                    {renderContactCard(contact, "grid", {
+                                        onSelect: () => handleSelectContact(contactIndex),
+                                    })}
+                                </li>
+                            );
+                        })}
                     </ul>
                 ) : (
                     <p className="contacts__empty">
@@ -495,7 +767,7 @@ const App = () => {
                         type="button"
                         className="btn btn--ghost"
                         onClick={handlePrev}
-                        disabled={!hasContacts || !canGoPrev || !isSingleView}
+                        disabled={!hasContacts || !canGoPrev}
                     >
                         Previous
                     </button>
@@ -506,7 +778,7 @@ const App = () => {
                         type="button"
                         className="btn btn--ghost"
                         onClick={handleNext}
-                        disabled={!hasContacts || !canGoNext || !isSingleView}
+                        disabled={!hasContacts || !canGoNext}
                     >
                         Next
                     </button>
