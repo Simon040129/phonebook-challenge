@@ -264,13 +264,15 @@
 }
 
 .contact-card__name {
-    margin: 0 0 0.25rem 0;
-    font-size: 1.1rem;
+    margin: 0 0 0.35rem 0;
+    font-size: 1.25rem;
+    line-height: 1.25;
 }
 
 .contact-card__title {
     margin: 0;
     color: var(--muted);
+    font-size: 0.95rem;
 }
 
 .contact-card__email,
@@ -285,10 +287,22 @@
 
 .contact-card__label {
     font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
 .contact-card__value {
-    margin: 0 0 0.5rem 0;
+    margin: 0.05rem 0 0.65rem 0;
+    font-size: 0.95rem;
+}
+
+.text-highlight {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: var(--accent);
+    font-weight: 600;
+    padding: 0 0.15em;
+    border-radius: 4px;
 }
 
 .contact-card__actions {
@@ -368,6 +382,18 @@
     align-items: center;
     gap: 2rem;
     padding: 2rem 2.5rem;
+}
+
+.contact-card--single .contact-card__name {
+    font-size: clamp(1.6rem, 2vw, 2rem);
+}
+
+.contact-card--single .contact-card__title {
+    font-size: 1rem;
+}
+
+.contact-card--single .contact-card__value {
+    font-size: 1rem;
 }
 
 .contact-card__photo--single {
@@ -511,8 +537,28 @@ select:focus-visible {
 }
 
 @media (max-width: 960px) {
+    .page {
+        margin: 2.5rem 1rem 4rem;
+        padding: 2rem 1.5rem 3.25rem;
+    }
+    .contacts__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    .view-toggle {
+        width: 100%;
+        justify-content: space-between;
+    }
+    .search__controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
     .contacts__grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .contact-card--single {
+        grid-template-columns: minmax(220px, 1fr) minmax(0, 1fr);
+        padding: 1.75rem 2rem;
     }
     .contact-edit__grid {
         grid-template-columns: repeat(2, minmax(160px, 1fr));
@@ -524,7 +570,7 @@ select:focus-visible {
         grid-template-columns: 1fr;
     }
     .search__controls {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
     .page {
         margin: 2rem 0.75rem 3.5rem;
@@ -551,6 +597,13 @@ select:focus-visible {
     }
     .contacts__grid {
         grid-template-columns: 1fr;
+    }
+    .contacts__header {
+        align-items: stretch;
+    }
+    .view-toggle {
+        width: 100%;
+        flex-direction: column;
     }
     .contact-card--single {
         grid-template-columns: 1fr;

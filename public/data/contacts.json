@@ -1,0 +1,32 @@
+[
+    {
+        "id": 101,
+        "name": "Ada Lovelace",
+        "phone": "(555) 010-0101",
+        "email": "ada@example.com"
+    },
+    {
+        "id": 102,
+        "name": "Alan Turing",
+        "phone": "(555) 010-0102",
+        "email": "alan@example.com"
+    },
+    {
+        "id": 103,
+        "name": "Grace Hopper",
+        "phone": "(555) 010-0103",
+        "email": "grace@example.com"
+    },
+    {
+        "id": 104,
+        "name": "Katherine Johnson",
+        "phone": "(555) 010-0104",
+        "email": "katherine@example.com"
+    },
+    {
+        "id": 105,
+        "name": "Donald Knuth",
+        "phone": "(555) 010-0105",
+        "email": "donald@example.com"
+    }
+]

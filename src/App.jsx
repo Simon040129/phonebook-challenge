@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import fleetInsignia from "./assets/fleet-insignia.svg";
 
@@ -126,10 +126,158 @@ const INITIAL_CONTACTS = FALLBACK_CONTACTS.map((contact, index) =>
     normalizeContact(contact, index)
 );
 
+const STORAGE_KEY = "squadron-contacts-v1";
+
+const supportsLocalStorage = () =>
+    typeof window !== "undefined" && "localStorage" in window;
+
+const readStoredContacts = () => {
+    if (!supportsLocalStorage()) {
+        return null;
+    }
+    try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+            return null;
+        }
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+            return null;
+        }
+        return parsed.map((contact, index) => normalizeContact(contact, index));
+    } catch (error) {
+        console.error("Failed to read contacts from storage", error);
+        return null;
+    }
+};
+
+const persistContacts = (nextContacts) => {
+    if (!supportsLocalStorage()) {
+        return;
+    }
+    try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextContacts));
+    } catch (error) {
+        console.error("Failed to persist contacts", error);
+    }
+};
+
+const escapeRegExp = (value = "") =>
+    value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const highlightTextMatches = (text, matcher) => {
+    if (!matcher) {
+        return text;
+    }
+    const pattern = new RegExp(escapeRegExp(matcher), "gi");
+    const segments = [];
+    let lastIndex = 0;
+    let match;
+    let key = 0;
+
+    while ((match = pattern.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            segments.push(text.slice(lastIndex, match.index));
+        }
+        segments.push(
+            <mark key={`highlight-${key++}`} className="text-highlight">
+                {match[0]}
+            </mark>
+        );
+        lastIndex = match.index + match[0].length;
+        if (match[0].length === 0) {
+            break;
+        }
+    }
+
+    if (lastIndex < text.length) {
+        segments.push(text.slice(lastIndex));
+    }
+
+    return segments.length > 0 ? segments : text;
+};
+
+const highlightPhoneNumber = (phone, numericQuery) => {
+    if (!numericQuery) {
+        return phone;
+    }
+    const normalized = phone.replace(/[^\d+]/g, "");
+    const matchIndex = normalized.indexOf(numericQuery);
+    if (matchIndex === -1) {
+        return phone;
+    }
+    const matchEnd = matchIndex + numericQuery.length;
+    const segments = [];
+    let current = "";
+    let digitIndex = 0;
+    let highlighting = false;
+    let key = 0;
+
+    const pushSegment = (value, isHighlight) => {
+        if (!value) {
+            return;
+        }
+        if (isHighlight) {
+            segments.push(
+                <mark key={`phone-h-${key++}`} className="text-highlight">
+                    {value}
+                </mark>
+            );
+        } else {
+            segments.push(<span key={`phone-t-${key++}`}>{value}</span>);
+        }
+    };
+
+    for (const char of phone) {
+        const contributes = /\d|\+/.test(char);
+        const shouldHighlight =
+            contributes && digitIndex >= matchIndex && digitIndex < matchEnd;
+
+        if (contributes) {
+            if (shouldHighlight !== highlighting && current) {
+                pushSegment(current, highlighting);
+                current = "";
+            }
+            highlighting = shouldHighlight;
+            current += char;
+            digitIndex += 1;
+        } else {
+            if (current) {
+                pushSegment(current, highlighting);
+                current = "";
+            }
+            segments.push(char);
+        }
+    }
+
+    if (current) {
+        pushSegment(current, highlighting);
+    }
+
+    return segments.length > 0 ? segments : phone;
+};
+
 const App = () => {
-    const [contacts, setContacts] = useState(INITIAL_CONTACTS);
+    const [contacts, setContacts] = useState(() => {
+        const storedContacts = readStoredContacts();
+        return storedContacts && storedContacts.length > 0
+            ? storedContacts
+            : INITIAL_CONTACTS;
+    });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const hasMountedRef = useRef(false);
+
+    useEffect(() => {
+        if (!hasMountedRef.current) {
+            return;
+        }
+        persistContacts(contacts);
+    }, [contacts]);
+
+    useEffect(() => {
+        hasMountedRef.current = true;
+    }, []);
 
     useEffect(() => {
         let isActive = true;
@@ -183,10 +331,11 @@ const App = () => {
     const [editForm, setEditForm] = useState({ name: "", phone: "", email: "" });
     const [editErrors, setEditErrors] = useState({});
 
-    const visibleContacts = useMemo(() => {
-        const normalizedQuery = query.trim().toLowerCase();
-        const numericQuery = normalizedQuery.replace(/[^\d+]/g, "");
+    const trimmedQuery = query.trim();
+    const normalizedQuery = trimmedQuery.toLowerCase();
+    const numericQuery = normalizedQuery.replace(/[^\d+]/g, "");
 
+    const visibleContacts = useMemo(() => {
         if (!normalizedQuery) {
             return contacts;
         }
@@ -199,7 +348,7 @@ const App = () => {
 
             return matchesName || matchesPhone;
         });
-    }, [contacts, query]);
+    }, [contacts, normalizedQuery, numericQuery]);
 
     useEffect(() => {
         setCurrentPage((prev) => {
@@ -214,6 +363,8 @@ const App = () => {
 
     useEffect(() => {
         setCurrentPage(0);
+        setEditingContactId(null);
+        setEditErrors({});
     }, [query]);
 
     const pageSize = viewMode === "grid" ? 9 : 1;
@@ -431,6 +582,8 @@ const App = () => {
 
     const renderContactCard = (contact, variant = "grid", options = {}) => {
         const { actions, onSelect } = options;
+        const nameContent = highlightTextMatches(contact.name, normalizedQuery);
+        const phoneContent = highlightPhoneNumber(contact.phone, numericQuery);
         return (
             <article
                 className={`contact-card contact-card--${variant}${
@@ -466,7 +619,7 @@ const App = () => {
                     className="contact-card__name"
                     data-testid="contact-name"
                 >
-                    {contact.name}
+                    {nameContent}
                 </h3>
                 {contact.title ? (
                     <p className="contact-card__title">{contact.title}</p>
@@ -475,7 +628,7 @@ const App = () => {
                     <dt className="contact-card__label">Comms</dt>
                     <dd className="contact-card__value">
                         <a href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}>
-                            {contact.phone}
+                            {phoneContent}
                         </a>
                     </dd>
                     <dt className="contact-card__label">Signal</dt>
